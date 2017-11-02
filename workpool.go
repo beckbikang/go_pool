@@ -32,6 +32,7 @@ func NewWork(runner Runner, args interface{}) *Work {
 
 //工作池
 type Kworkpool struct {
+	rmutex     sync.RWMutex
 	mutex      sync.Mutex //写锁
 	runnerList *list.List //任务列表
 	poolSize   int        //启动的pool的个数
@@ -74,9 +75,9 @@ func (kl *Kworkpool) run() {
 func (kl *Kworkpool) work() {
 	for {
 		//检测数据的长度
-		kl.mutex.Lock()
+		kl.rmutex.RLock()
 		listLen := kl.runnerList.Len()
-		kl.mutex.Unlock()
+		kl.rmutex.RUnlock()
 		if listLen == 0 { //休眠100毫秒
 			//已经关闭就结束程序,需要判断是否已经没有任务
 			if !kl.flag {
